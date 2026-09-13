@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Game Day Guide</title>
+  <meta name="description" content="Every NFL and college football game this week, and how to watch each one.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <h1 class="brand"><span aria-hidden="true">🏈</span> Game Day Guide</h1>
+      <div class="viewer">
+        <div class="place" id="place-summary" hidden>
+          <span class="field-label">Watching from</span>
+          <strong id="place-label"></strong>
+          <button type="button" class="link-btn" id="change-place">Change</button>
+        </div>
+        <form class="place-form" id="place-form">
+          <input type="text" id="place-input" placeholder="ZIP code (or city, state)" autocomplete="postal-code" aria-label="ZIP code or city">
+          <button type="submit" class="text-btn">Set</button>
+          <button type="button" class="text-btn" id="use-location">📍 Use my location</button>
+        </form>
+        <label class="check">
+          <input type="checkbox" id="hulu-home">
+          <span>At the Hulu home</span>
+        </label>
+      </div>
+      <p class="place-error" id="place-error" hidden></p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="setup-banner" id="setup-banner" hidden>
+      👋 Enter the ZIP code where you're watching. The page checks what your local CBS and FOX stations are
+      airing each Sunday, so it can tell you exactly which games to watch there instead of on Sunday Ticket.
+      Tick <strong>At the Hulu home</strong> if you're there. This device will remember it.
+    </p>
+
+    <aside class="local-panel" id="local-panel" hidden></aside>
+
+    <section class="next-up" aria-labelledby="next-up-title">
+      <h2 id="next-up-title" class="section-title">Next up</h2>
+      <div id="next-up" class="next-up-grid"></div>
+    </section>
+
+    <section aria-labelledby="games-title">
+      <div class="list-head">
+        <h2 id="games-title" class="section-title">All games</h2>
+        <div class="week-nav" id="week-nav">
+          <button type="button" class="icon-btn" id="prev-week" aria-label="Previous week">‹</button>
+          <span class="week-label" id="week-label"></span>
+          <button type="button" class="icon-btn" id="next-week" aria-label="Next week">›</button>
+          <button type="button" class="text-btn" id="this-week">This week</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="segmented" role="group" aria-label="League">
+          <button type="button" data-league="all" aria-pressed="true">All</button>
+          <button type="button" data-league="nfl" aria-pressed="false">NFL</button>
+          <button type="button" data-league="cfb" aria-pressed="false">College</button>
+        </div>
+        <input type="search" id="search" class="search" placeholder="Search a team or channel" aria-label="Search a team or channel">
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="favorites-only"><span id="favorites-label">★ Favorites</span></label>
+          <label class="chip"><input type="checkbox" id="top25"><span>Top 25 college</span></label>
+          <label class="chip"><input type="checkbox" id="show-finished"><span>Show finished</span></label>
+        </div>
+      </div>
+
+      <div id="games" class="games" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer class="wrap site-footer">
+    <p id="footer-info"></p>
+  </footer>
+</body>
+</html>
