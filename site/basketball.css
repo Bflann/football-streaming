@@ -75,3 +75,30 @@
   .bgame { grid-template-columns: 1fr; }
   .day-chip { width: 66px; }
 }
+
+/* ---------- my players (fantasy) ---------- */
+
+.players { margin: 0 0 14px; }
+.players-head { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: center; }
+.player-search { position: relative; flex: 1 1 260px; max-width: 420px; }
+.player-search input { width: 100%; }
+.player-results {
+  position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 6px 24px rgb(0 0 0 / 18%);
+  max-height: 320px; overflow-y: auto;
+}
+.player-results li { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; cursor: pointer; }
+.player-results li[aria-selected="true"], .player-results li:hover { background: var(--accent-soft); }
+.player-results .pmeta { margin-left: auto; font-size: .8rem; color: var(--muted); }
+.player-results .none { cursor: default; color: var(--muted); }
+.player-chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 10px 0 0; padding: 0; }
+.player-chips:empty { display: none; }
+.pchip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; border-radius: 999px;
+  background: var(--accent-soft); border: 1px solid var(--accent); font-size: .9rem;
+}
+.pchip button { border: 0; background: none; cursor: pointer; font-size: 1.1rem; line-height: 1; color: inherit; padding: 0 4px; }
+.pchip .hurt, .pbadge .hurt { color: var(--live); font-weight: 700; font-size: .75rem; }
+.players-hint { margin: 8px 0 0; font-size: .85rem; }
+.pbadge { display: inline-block; margin: 6px 6px 0 0; padding: 2px 9px; border-radius: 999px; background: var(--accent-soft); font-size: .8rem; font-weight: 600; }
+.bgame .roster-line { margin-top: 4px; }

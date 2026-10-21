@@ -91,6 +91,26 @@ async function fetchLeague(league) {
 
 const all = (await Promise.all(LEAGUES.map(fetchLeague))).flat().sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
 
+// NBA rosters (for the page's player filter): who plays for which team, and who's hurt.
+const teamList = await getJson(`${BASE}/nba/teams`);
+const nbaTeams = teamList.sports[0].leagues[0].teams.map((t) => t.team.id);
+const players = [];
+for (let i = 0; i < nbaTeams.length; i += CONCURRENCY) {
+  const rosters = await Promise.all(nbaTeams.slice(i, i + CONCURRENCY).map((id) => getJson(`${BASE}/nba/teams/${id}/roster`)));
+  rosters.forEach((roster, j) => {
+    for (const a of roster.athletes ?? []) {
+      players.push({
+        id: a.id,
+        name: a.displayName ?? a.fullName,
+        team: nbaTeams[i + j],
+        pos: a.position?.abbreviation ?? "",
+        injury: a.injuries?.[0]?.status ?? null,
+      });
+    }
+  });
+}
+players.sort((a, b) => a.name.localeCompare(b.name));
+
 const unknown = [...new Set(all.flatMap((g) => g.channels))].filter((c) => !CHANNELS[c]);
 if (unknown.length) console.warn(`Channels missing from site/config.js: ${unknown.join(", ")}`);
 
@@ -99,4 +119,6 @@ await writeFile(
   new URL("basketball.json", OUT_DIR),
   JSON.stringify({ updatedAt: new Date().toISOString(), season: startYear + 1, games: all }),
 );
+await writeFile(new URL("nba-players.json", OUT_DIR), JSON.stringify({ updatedAt: new Date().toISOString(), players }));
+console.log(`Wrote ${players.length} NBA players to site/data/nba-players.json`);
 console.log(`Wrote ${all.length} games to site/data/basketball.json`);

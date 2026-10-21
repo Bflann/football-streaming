@@ -44,13 +44,25 @@
       <input type="search" id="search" class="search" placeholder="Search a team or channel" aria-label="Search a team or channel">
     </section>
 
+    <section class="players" id="players" aria-label="My players">
+      <div class="players-head">
+        <button type="button" class="mich-toggle" id="players-toggle" aria-pressed="false">🏀 My players only</button>
+        <div class="player-search">
+          <input type="search" id="player-input" placeholder="Add an NBA player (fantasy roster)" autocomplete="off" aria-label="Add an NBA player" aria-controls="player-results">
+          <ul class="player-results" id="player-results" role="listbox" hidden></ul>
+        </div>
+      </div>
+      <ul class="player-chips" id="player-chips"></ul>
+      <p class="muted players-hint" id="players-hint">Add the players on your fantasy team to see when and where their games are on. Saved on this device.</p>
+    </section>
+
     <section class="calendar" id="calendar" aria-label="Pick a day">
       <div class="cal-head">
         <button type="button" class="icon-btn" id="prev-day" aria-label="Previous day">‹</button>
         <h2 class="cal-title" id="cal-title"></h2>
         <button type="button" class="icon-btn" id="next-day" aria-label="Next day">›</button>
         <button type="button" class="text-btn" id="today">Today</button>
-        <button type="button" class="text-btn" id="next-mich" hidden>Next Michigan game →</button>
+        <button type="button" class="text-btn" id="next-mich" hidden>Next game of mine →</button>
         <label class="date-jump"><span class="visually-hidden">Jump to a date</span><input type="date" id="jump-date"></label>
       </div>
       <div class="strip" id="strip" role="tablist" aria-label="Days"></div>

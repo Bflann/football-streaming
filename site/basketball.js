@@ -14,6 +14,9 @@ const state = {
   viewer: loadViewer(),
   day: dayKey(new Date()), // selected day, "YYYY-MM-DD" in the viewer's time zone
   michigan: false,
+  playersOnly: false,
+  players: [], // every NBA player, from data/nba-players.json
+  myPlayers: [], // ids of the players being followed
   league: "all",
   top25: false,
   tvOnly: true,
@@ -39,14 +42,14 @@ function saveHuluHome() {
 function loadPrefs() {
   try {
     const p = JSON.parse(localStorage.getItem(PREFS_KEY));
-    if (p) Object.assign(state, { michigan: Boolean(p.michigan), league: p.league ?? "all", top25: Boolean(p.top25), tvOnly: p.tvOnly !== false });
+    if (p) Object.assign(state, { michigan: Boolean(p.michigan), playersOnly: Boolean(p.playersOnly), myPlayers: Array.isArray(p.myPlayers) ? p.myPlayers : [], league: p.league ?? "all", top25: Boolean(p.top25), tvOnly: p.tvOnly !== false });
   } catch {}
 }
 
 function savePrefs() {
-  const { michigan, league, top25, tvOnly } = state;
+  const { michigan, playersOnly, myPlayers, league, top25, tvOnly } = state;
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify({ michigan, league, top25, tvOnly }));
+    localStorage.setItem(PREFS_KEY, JSON.stringify({ michigan, playersOnly, myPlayers, league, top25, tvOnly }));
   } catch {}
 }
 
@@ -90,6 +93,15 @@ const isLive = (g, now = Date.now()) => {
 };
 const isMichigan = (g) =>
   g.league === BASKETBALL_FAVORITE.league && (g.home.id === BASKETBALL_FAVORITE.id || g.away.id === BASKETBALL_FAVORITE.id);
+// Followed players whose team is in this NBA game.
+function myPlayersIn(game) {
+  if (game.league !== "nba" || !state.myPlayers.length) return [];
+  return state.players.filter((p) => state.myPlayers.includes(p.id) && (p.team === game.home.id || p.team === game.away.id));
+}
+const isMine = (g) => isMichigan(g) || myPlayersIn(g).length > 0;
+// "Focus" mode: only Michigan and/or my players' games.
+const focusOn = () => state.michigan || state.playersOnly;
+const inFocus = (g) => (state.michigan && isMichigan(g)) || (state.playersOnly && myPlayersIn(g).length > 0);
 const isPlaceholder = (g) => g.home.id.startsWith("-") && g.away.id.startsWith("-");
 
 function matchesQuery(game, query) {
@@ -102,10 +114,10 @@ function matchesQuery(game, query) {
 
 // Everything except the date, so the calendar can show per-day counts.
 function passesFilters(g) {
-  if (state.michigan && !isMichigan(g)) return false;
+  if (focusOn() && !inFocus(g)) return false;
   if (state.league !== "all" && g.league !== state.league) return false;
   if (state.top25 && (g.league !== "cbb" || (!g.home.rank && !g.away.rank))) return false;
-  if (state.tvOnly && !state.michigan && g.channels.length === 0) return false;
+  if (state.tvOnly && !focusOn() && g.channels.length === 0) return false;
   const query = state.query.trim().toLowerCase();
   return !query || matchesQuery(g, query);
 }
@@ -158,12 +170,17 @@ function gameCard(game, { showTime = false } = {}) {
     ? `<div class="team team-placeholder">${escapeHtml(game.note ?? "Matchup TBD")}</div>`
     : `${teamHtml(game.away, game.league)}<span class="at">${game.neutralSite ? "vs" : "at"}</span>${teamHtml(game.home, game.league)}`;
   const note = game.note && !isPlaceholder(game) ? ` · ${escapeHtml(game.note)}` : "";
+  const mine = myPlayersIn(game);
+  const roster = mine.length
+    ? `<div class="roster-line">${mine.map((p) => `<span class="pbadge">🏀 ${escapeHtml(p.name)}${p.injury && p.injury !== "Active" ? ` <span class="hurt">${escapeHtml(p.injury)}</span>` : ""}</span>`).join("")}</div>`
+    : "";
   const time = showTime ? ` · ${game.timeTBD ? "Time TBD" : fmtTime.format(new Date(game.date))}` : "";
   return `
     <article class="bgame${fav ? " game-fav" : ""}${isFinished(game) ? " game-done" : ""}">
       <div>
         <div class="teams">${matchup}${badges.join("")}</div>
         <span class="meta">${game.league === "nba" ? "NBA" : "College"}${note}${time}</span>
+        ${roster}
       </div>
       ${watchHtml(game)}
     </article>`;
@@ -198,8 +215,9 @@ function renderSeason(games) {
 function renderGames() {
   const all = state.games.filter(passesFilters);
   let html;
-  if (state.michigan) {
-    $("list-title").textContent = `${BASKETBALL_FAVORITE.label} schedule`;
+  if (focusOn()) {
+    const what = [state.michigan && BASKETBALL_FAVORITE.label, state.playersOnly && "My players"].filter(Boolean).join(" + ");
+    $("list-title").textContent = `${what} schedule`;
     $("list-count").textContent = `${all.length} game${all.length === 1 ? "" : "s"}`;
     html = all.length ? renderSeason(all) : "";
   } else {
@@ -209,7 +227,7 @@ function renderGames() {
     html = games.length ? renderDay(games) : "";
   }
   if (!html) {
-    const hint = state.tvOnly && !state.michigan ? " Games with no TV listed are hidden. Untick <strong>On TV or streaming</strong> to see them." : "";
+    const hint = state.playersOnly && !state.myPlayers.length ? " Add some players above to build your list." : state.tvOnly && !focusOn() ? " Games with no TV listed are hidden. Untick <strong>On TV or streaming</strong> to see them." : "";
     html = `<p class="empty">No games match this day.${hint}</p>`;
   }
   $("games").innerHTML = html;
@@ -226,9 +244,11 @@ function renderStrip({ scroll = true } = {}) {
   const { first, last } = dayRange();
   const counts = new Map();
   const michDays = new Set();
+  const focusDays = new Set();
   for (const g of state.games) {
     const key = dayKey(g.date);
-    if (isMichigan(g)) michDays.add(key);
+    if (isMine(g)) michDays.add(key);
+    if (focusOn() && inFocus(g)) focusDays.add(key);
     if (passesFilters(g)) counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   const today = dayKey(new Date());
@@ -239,14 +259,14 @@ function renderStrip({ scroll = true } = {}) {
     const classes = ["day-chip"];
     if (key === today) classes.push("is-today");
     if (d.getDate() === 1 || key === first) classes.push("month-start");
-    if (state.michigan ? !michDays.has(key) : n === 0) classes.push(state.michigan ? "is-dim" : "is-empty");
+    if (focusOn() ? !focusDays.has(key) : n === 0) classes.push(focusOn() ? "is-dim" : "is-empty");
     chips.push(`
       <button type="button" class="${classes.join(" ")}" role="tab" data-day="${key}" aria-selected="${key === state.day}">
         ${classes.includes("month-start") ? `<span class="mon">${fmtMonth.format(d)}</span>` : ""}
         <span class="dow">${key === today ? "Today" : fmtDow.format(d)}</span>
         <span class="num">${d.getDate()}</span>
         <span class="cnt">${n ? `${n} game${n === 1 ? "" : "s"}` : "–"}</span>
-        ${!state.michigan && michDays.has(key) ? `<span class="mdot" title="${escapeHtml(BASKETBALL_FAVORITE.label)} plays" aria-label="${escapeHtml(BASKETBALL_FAVORITE.label)} plays"></span>` : ""}
+        ${!focusOn() && michDays.has(key) ? `<span class="mdot" title="Michigan or one of your players plays" aria-label="Michigan or one of your players plays"></span>` : ""}
       </button>`);
   }
   $("strip").innerHTML = chips.join("");
@@ -257,13 +277,13 @@ function renderStrip({ scroll = true } = {}) {
   $("prev-day").disabled = state.day <= first;
   $("next-day").disabled = state.day >= last;
   $("today").hidden = state.day === today;
-  $("next-mich").hidden = state.michigan || !nextMichigan();
+  $("next-mich").hidden = focusOn() || !nextMine();
   if (scroll) $("strip").querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest", inline: "center" });
 }
 
-function nextMichigan() {
+function nextMine() {
   const now = Date.now();
-  return state.games.find((g) => isMichigan(g) && !isFinished(g, now));
+  return state.games.find((g) => isMine(g) && !isFinished(g, now));
 }
 
 function selectDay(key, { scrollList = false } = {}) {
@@ -271,7 +291,7 @@ function selectDay(key, { scrollList = false } = {}) {
   state.day = key < first ? first : key > last ? last : key;
   try { history.replaceState(null, "", `#${state.day}`); } catch {}
   render();
-  if (scrollList && state.michigan) {
+  if (scrollList && focusOn()) {
     // In the Michigan schedule, jump to the nearest game on or after the picked day.
     const target = [...document.querySelectorAll(".day-title")].find((el) => el.id.slice(4) >= state.day) ?? document.querySelector(".day-title:last-of-type");
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -279,9 +299,92 @@ function selectDay(key, { scrollList = false } = {}) {
 }
 
 function render() {
-  document.querySelector("#mich-toggle").setAttribute("aria-pressed", String(state.michigan));
+  $("mich-toggle").setAttribute("aria-pressed", String(state.michigan));
+  $("players-toggle").setAttribute("aria-pressed", String(state.playersOnly));
+  renderPlayerChips();
   renderStrip();
   renderGames();
+}
+
+// ---------- my players ----------
+
+function playerTeamName(player) {
+  const game = state.games.find((g) => g.league === "nba" && (g.home.id === player.team || g.away.id === player.team));
+  const t = game && (game.home.id === player.team ? game.home : game.away);
+  return t?.name ?? "";
+}
+
+function renderPlayerChips() {
+  const chips = state.myPlayers.map((id) => state.players.find((p) => p.id === id)).filter(Boolean);
+  $("player-chips").innerHTML = chips
+    .map((p) => `<li class="pchip">${escapeHtml(p.name)} <span class="muted">${escapeHtml(playerTeamName(p))}</span>${p.injury && p.injury !== "Active" ? ` <span class="hurt">${escapeHtml(p.injury)}</span>` : ""}
+      <button type="button" data-remove="${escapeHtml(p.id)}" aria-label="Remove ${escapeHtml(p.name)}">×</button></li>`)
+    .join("");
+  $("players-hint").hidden = chips.length > 0;
+}
+
+function scrollToNextMine() {
+  const next = nextMine();
+  if (next) document.getElementById(`day-${dayKey(next.date)}`)?.scrollIntoView({ block: "start" });
+}
+
+const normalizeName = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f.'’-]/g, "");
+
+function setupPlayerSearch() {
+  const input = $("player-input");
+  const list = $("player-results");
+  let matches = [];
+  let active = -1;
+
+  const close = () => { list.hidden = true; active = -1; };
+  const paint = () => {
+    list.innerHTML = matches.length
+      ? matches.map((p, i) => `<li role="option" data-id="${escapeHtml(p.id)}" aria-selected="${i === active}">${escapeHtml(p.name)}<span class="pmeta">${escapeHtml(p.pos)} · ${escapeHtml(playerTeamName(p))}</span></li>`).join("")
+      : `<li class="none">No player found</li>`;
+    list.hidden = false;
+  };
+  const add = (id) => {
+    if (!state.myPlayers.includes(id)) state.myPlayers.push(id);
+    state.playersOnly = true; // adding a player means you want to see their games
+    savePrefs();
+    input.value = "";
+    close();
+    render();
+    scrollToNextMine();
+  };
+
+  input.addEventListener("input", () => {
+    const q = normalizeName(input.value.trim());
+    if (!q) return close();
+    matches = state.players
+      .filter((p) => !state.myPlayers.includes(p.id) && q.split(/\s+/).every((w) => normalizeName(p.name).includes(w)))
+      .slice(0, 8);
+    active = matches.length ? 0 : -1;
+    paint();
+  });
+  input.addEventListener("keydown", (e) => {
+    if (list.hidden) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      active = (active + (e.key === "ArrowDown" ? 1 : -1) + matches.length) % matches.length;
+      paint();
+    } else if (e.key === "Enter" && matches[active]) {
+      e.preventDefault();
+      add(matches[active].id);
+    } else if (e.key === "Escape") close();
+  });
+  list.addEventListener("mousedown", (e) => {
+    const li = e.target.closest("[data-id]");
+    if (li) { e.preventDefault(); add(li.dataset.id); }
+  });
+  input.addEventListener("blur", close);
+  $("player-chips").addEventListener("click", (e) => {
+    const id = e.target.closest("[data-remove]")?.dataset.remove;
+    if (!id) return;
+    state.myPlayers = state.myPlayers.filter((x) => x !== id);
+    savePrefs();
+    render();
+  });
 }
 
 // ---------- wiring ----------
@@ -298,12 +401,15 @@ function setupControls() {
     state.michigan = !state.michigan;
     savePrefs();
     render();
-    if (state.michigan) {
-      // Start the Michigan schedule at the next game rather than the season opener.
-      const next = nextMichigan();
-      if (next) document.getElementById(`day-${dayKey(next.date)}`)?.scrollIntoView({ block: "start" });
-    }
+    if (state.michigan) scrollToNextMine();
   });
+  $("players-toggle").addEventListener("click", () => {
+    state.playersOnly = !state.playersOnly;
+    savePrefs();
+    render();
+    if (state.playersOnly) scrollToNextMine();
+  });
+  setupPlayerSearch();
 
   for (const button of document.querySelectorAll("[data-league]")) {
     button.addEventListener("click", () => {
@@ -326,7 +432,7 @@ function setupControls() {
   $("today").addEventListener("click", () => selectDay(dayKey(new Date())));
   $("jump-date").addEventListener("change", (e) => e.target.value && selectDay(e.target.value));
   $("next-mich").addEventListener("click", () => {
-    const next = nextMichigan();
+    const next = nextMine();
     if (next) selectDay(dayKey(next.date));
   });
   document.addEventListener("keydown", (e) => {
@@ -351,6 +457,12 @@ async function init() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     state.games = data.games;
+    try {
+      const pres = await fetch("data/nba-players.json", { cache: "no-cache" });
+      if (pres.ok) state.players = (await pres.json()).players;
+    } catch {}
+    // Players the saved list names that have since left the league just drop off.
+    if (state.players.length) state.myPlayers = state.myPlayers.filter((id) => state.players.some((p) => p.id === id));
     const hash = location.hash.slice(1);
     if (/^\d{4}-\d{2}-\d{2}$/.test(hash)) state.day = hash;
     // Before the season starts, open on the first day with games.

@@ -9,7 +9,7 @@ A web page listing every NFL and FBS college football game, with instructions fo
 
 ## Basketball page
 
-[site/basketball.html](site/basketball.html) lists NBA and Division I men's college basketball games **one day at a time**: a scrollable calendar strip across the top (with game counts, plus a dot on days Michigan plays), arrow keys to flip days, and a date picker. Games are grouped by tip-off time. **Michigan only** switches to Michigan's full schedule. Other filters: NBA/College, Top 25, and hiding games with no TV listed. Data comes from `scripts/fetch-basketball.mjs` into `site/data/basketball.json` (`npm run fetch` runs both fetchers). The Michigan team ID is `BASKETBALL_FAVORITE` in `site/config.js`.
+[site/basketball.html](site/basketball.html) lists NBA and Division I men's college basketball games **one day at a time**: a scrollable calendar strip across the top (with game counts, plus a dot on days Michigan plays), arrow keys to flip days, and a date picker. Games are grouped by tip-off time. **Michigan only** switches to Michigan's full schedule. **My players** (for fantasy leagues): search any NBA player, add them to your list (saved on that device), and tap **My players only** to see just their teams' games, each tagged with the player and any injury status. Other filters: NBA/College, Top 25, and hiding games with no TV listed. Data comes from `scripts/fetch-basketball.mjs` into `site/data/basketball.json` and NBA rosters/injuries into `site/data/nba-players.json` (`npm run fetch` runs both fetchers). The Michigan team ID is `BASKETBALL_FAVORITE` in `site/config.js`.
 
 ## How it works
 
