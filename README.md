@@ -7,6 +7,10 @@ A web page listing every NFL and FBS college football game, with instructions fo
 - **Settings stay on each device.** Everyone enters their ZIP code once (or "Use my location") on their own phone or computer.
 - **Real blackout info.** For each NFL Sunday, the page looks up what the viewer's local CBS and FOX stations are actually airing and marks those games **on your local station** (Sunday Ticket doesn't carry them in-market), pointing to the station's app. Everything else on Sunday afternoon is on Sunday Ticket. A panel at the top lists that Sunday's local games.
 
+## Basketball page
+
+[site/basketball.html](site/basketball.html) lists NBA and Division I men's college basketball games **one day at a time**: a scrollable calendar strip across the top (with game counts, plus a dot on days Michigan plays), arrow keys to flip days, and a date picker. Games are grouped by tip-off time. **Michigan only** switches to Michigan's full schedule. Other filters: NBA/College, Top 25, and hiding games with no TV listed. Data comes from `scripts/fetch-basketball.mjs` into `site/data/basketball.json` (`npm run fetch` runs both fetchers). The Michigan team ID is `BASKETBALL_FAVORITE` in `site/config.js`.
+
 ## How it works
 
 | Piece | What it does |

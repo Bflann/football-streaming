@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "fetch": "node scripts/fetch-schedule.mjs",
+    "fetch": "node scripts/fetch-schedule.mjs && node scripts/fetch-basketball.mjs",
+    "fetch:basketball": "node scripts/fetch-basketball.mjs",
     "test": "node --test",
     "serve": "python3 -m http.server 8000 --directory site"
   }

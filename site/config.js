@@ -59,7 +59,21 @@ export const CHANNELS = {
   "SECN+": streaming("SEC Network+", "ESPN app"),
   ACCNX: streaming("ACC Network Extra", "ESPN app"),
   "Disney+": streaming("Disney+", "Disney+ app"),
+
+  // Basketball (best guesses; double-check them)
+  Fox: tv("FOX", "FOX Sports app"),
+  "NBA TV": tv("NBA TV", "NBA app"),
+  NBCSN: tv("NBCSN", "NBC Sports app"),
+  "B1G+": streaming("Big Ten Plus (B1G+)", "B1G+ app"),
+  "NBA League Pass": streaming("NBA League Pass", "NBA app"),
 };
+
+// ----------------------------------------------------------------------------
+//  Basketball page
+// ----------------------------------------------------------------------------
+
+// The team behind the "Michigan only" filter. IDs are ESPN's team IDs.
+export const BASKETBALL_FAVORITE = { league: "cbb", id: "130", label: "Michigan" };
 
 // Sunday-afternoon NFL games on these networks are on Sunday Ticket, except
 // the ones the viewer's local CBS/FOX stations are airing (those are blacked

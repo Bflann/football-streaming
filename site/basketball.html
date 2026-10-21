@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Game Day Guide · Basketball</title>
+  <meta name="description" content="Every NBA and college basketball game by day, and how to watch each one.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏀</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="basketball.css">
+  <script type="module" src="basketball.js"></script>
+</head>
+<body class="bball">
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <h1 class="brand"><span aria-hidden="true">🏀</span> Game Day Guide</h1>
+      <nav class="sport-nav" aria-label="Sport">
+        <a href="index.html">🏈 Football</a>
+        <a href="basketball.html" aria-current="page">🏀 Basketball</a>
+      </nav>
+      <div class="viewer">
+        <label class="check">
+          <input type="checkbox" id="hulu-home">
+          <span>At the Hulu home</span>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="toolbar" aria-label="Filters">
+      <button type="button" class="mich-toggle" id="mich-toggle" aria-pressed="false">
+        <span aria-hidden="true">〽️</span> Michigan only
+      </button>
+      <div class="segmented" role="group" aria-label="League">
+        <button type="button" data-league="all" aria-pressed="true">All</button>
+        <button type="button" data-league="nba" aria-pressed="false">NBA</button>
+        <button type="button" data-league="cbb" aria-pressed="false">College</button>
+      </div>
+      <div class="chips">
+        <label class="chip"><input type="checkbox" id="top25"><span>Top 25 college</span></label>
+        <label class="chip"><input type="checkbox" id="tv-only" checked><span>On TV or streaming</span></label>
+      </div>
+      <input type="search" id="search" class="search" placeholder="Search a team or channel" aria-label="Search a team or channel">
+    </section>
+
+    <section class="calendar" id="calendar" aria-label="Pick a day">
+      <div class="cal-head">
+        <button type="button" class="icon-btn" id="prev-day" aria-label="Previous day">‹</button>
+        <h2 class="cal-title" id="cal-title"></h2>
+        <button type="button" class="icon-btn" id="next-day" aria-label="Next day">›</button>
+        <button type="button" class="text-btn" id="today">Today</button>
+        <button type="button" class="text-btn" id="next-mich" hidden>Next Michigan game →</button>
+        <label class="date-jump"><span class="visually-hidden">Jump to a date</span><input type="date" id="jump-date"></label>
+      </div>
+      <div class="strip" id="strip" role="tablist" aria-label="Days"></div>
+    </section>
+
+    <section aria-live="polite">
+      <div class="list-head"><h2 class="section-title" id="list-title"></h2><span class="muted" id="list-count"></span></div>
+      <div id="games" class="games"></div>
+    </section>
+  </main>
+
+  <footer class="wrap site-footer">
+    <p id="footer-info"></p>
+  </footer>
+</body>
+</html>
