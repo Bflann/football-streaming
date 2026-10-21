@@ -68,6 +68,19 @@ button, input, select { font: inherit; color: inherit; }
   gap: 10px 24px;
 }
 
+.sport-nav { display: flex; gap: 4px; }
+.sport-nav a {
+  color: var(--header-text); text-decoration: none; padding: 6px 12px; border-radius: 999px;
+  font-weight: 600; opacity: .75;
+}
+.sport-nav a[aria-current="page"] { background: rgb(255 255 255 / 16%); opacity: 1; }
+.sport-nav a:hover { opacity: 1; }
+
+/* Football header: brand and sport switcher on one row, location controls below. */
+.header-stack .sport-nav { margin-left: auto; }
+@media (max-width: 640px) { .header-stack .sport-nav { margin-left: 0; } }
+.header-stack .viewer, .header-stack .place-error { flex-basis: 100%; }
+
 .brand { margin: 0; font-size: 1.25rem; letter-spacing: -0.01em; }
 
 .viewer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }

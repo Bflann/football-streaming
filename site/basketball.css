@@ -1,13 +1,5 @@
 /* Basketball page: same look as football, different layout (days, not weeks). */
 
-.sport-nav { display: flex; gap: 4px; }
-.sport-nav a {
-  color: var(--header-text); text-decoration: none; padding: 6px 12px; border-radius: 999px;
-  font-weight: 600; opacity: .75;
-}
-.sport-nav a[aria-current="page"] { background: rgb(255 255 255 / 16%); opacity: 1; }
-.sport-nav a:hover { opacity: 1; }
-
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: center; margin: 18px 0 14px; }
